@@ -1,0 +1,58 @@
+{
+  "name": "apcvw-js",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Asymmetric Phase Coding Video Watermarking: browser-local JavaScript library that carries an Ed25519 signature in the chroma phase spectrum of video and verifies it with the 32-byte public key alone.",
+  "type": "module",
+  "main": "./src/lib/index.js",
+  "exports": {
+    ".": "./src/lib/index.js"
+  },
+  "files": [
+    "src/lib",
+    "docs/API.md",
+    "README.md",
+    "LICENSE",
+    "CITATION.cff"
+  ],
+  "scripts": {
+    "test": "node --test 'tests/**/*.test.js'",
+    "test:core": "node --test tests/hex.test.js tests/ed25519.test.js tests/rs.test.js tests/payload.test.js tests/fft.test.js tests/carrier.test.js tests/prng.test.js tests/layout.test.js tests/color.test.js tests/evidence.test.js tests/pipeline.test.js tests/negative.test.js tests/spectrum.test.js tests/api.test.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@noble/ed25519": "3.2.0",
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "vite": "8.2.2"
+  },
+  "license": "BSD-2-Clause",
+  "author": "Guang Yang <guang.yang@philab.fund>",
+  "contributors": [
+    "Fengchen Liu"
+  ],
+  "homepage": "https://github.com/GY19A/asymmetric-phase-coding-video-watermarking",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GY19A/asymmetric-phase-coding-video-watermarking.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GY19A/asymmetric-phase-coding-video-watermarking/issues"
+  },
+  "keywords": [
+    "video watermarking",
+    "ed25519",
+    "public key",
+    "phase coding",
+    "provenance",
+    "copyright",
+    "browser",
+    "webassembly-free"
+  ]
+}

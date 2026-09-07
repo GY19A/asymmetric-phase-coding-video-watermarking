@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software or the method, please cite the paper below."
+title: "Asymmetric Phase Coding Video Watermarking"
+type: software
+version: 0.1.0
+date-released: 2026-09-07
+license: BSD-2-Clause
+repository-code: "https://github.com/GY19A/asymmetric-phase-coding-video-watermarking"
+authors:
+  - family-names: Yang
+    given-names: Guang
+    email: guang.yang@philab.fund
+    affiliation: "Phi Lab Foundation"
+  - family-names: Liu
+    given-names: Fengchen
+    affiliation: "University of California, Berkeley"
+preferred-citation:
+  type: article
+  title: "Asymmetric Phase Coding Video Watermarking"
+  authors:
+    - family-names: Yang
+      given-names: Guang
+      affiliation: "Phi Lab Foundation"
+    - family-names: Liu
+      given-names: Fengchen
+      affiliation: "University of California, Berkeley"
+  year: 2026
+  journal: "arXiv preprint"
+  identifiers:
+    - type: other
+      value: "arXiv:2608.29212"
+  url: "https://arxiv.org/abs/2608.29212"
+  doi: 10.48550/arXiv.2608.29212

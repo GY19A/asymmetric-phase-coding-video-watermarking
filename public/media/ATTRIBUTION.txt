@@ -1,0 +1,11 @@
+Sintel demo excerpt
+
+Source work: Sintel, Blender Foundation / Durian Open Movie Project (2010).
+Attribution: © copyright Blender Foundation | www.sintel.org
+License: Creative Commons Attribution 3.0 (CC BY 3.0).
+License information: https://durian.blender.org/sharing/
+License text: https://creativecommons.org/licenses/by/3.0/
+
+This demonstration uses a four-second adapted excerpt from the project's existing Sintel test clip. The excerpt has been trimmed, resized, letterboxed, and stripped of audio. The browser creates further watermarked derivatives when a visitor runs the demo. No endorsement by Blender Foundation is implied.
+
+This is openly licensed material, not public-domain material. Preserve this attribution when redistributing the excerpt or its marked output.
