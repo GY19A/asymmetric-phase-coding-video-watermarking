@@ -21,7 +21,8 @@ const SUBHEAD = "A training-free video watermark that removes the shared secret.
 const LEDE =
   "This page runs the protocol from the paper in your browser: sign a short message, carry it in the chroma phase of a four second video excerpt, decode the encoded file, and verify it with the public key alone. " +
   "Every step runs in this browser tab. Nothing is uploaded.";
-export const PAPER_URL = "https://arxiv.org/abs/2608.29212";
+export const REPO_URL = "https://github.com/GY19A/asymmetric-phase-coding-video-watermarking";
+const PAPER_URL = "https://arxiv.org/abs/2608.29212";
 const AUTHORS = [
   { name: "Guang Yang", affiliation: "Phi Lab Foundation", href: "https://philab.fund" },
   { name: "Fengchen Liu", affiliation: "University of California, Berkeley", href: null },
@@ -1036,6 +1037,7 @@ function buildShell(refs, handlers, opts, caps) {
       "nav",
       { class: "toplinks", "aria-label": "Site" },
       h("a", { href: opts.paperHref, target: "_blank", rel: "noopener", testid: "link-paper" }, "Paper"),
+      h("a", { href: REPO_URL, target: "_blank", rel: "noopener", testid: "link-code" }, "Code"),
       h("a", { href: "#api", testid: "link-api", onclick: (e) => scrollTo(e, refs.apiSection) }, "API"),
       h("a", { href: "#learn", testid: "link-learn", onclick: (e) => scrollTo(e, refs.learnSection) }, "Learn"),
     ),
@@ -1236,7 +1238,7 @@ function buildShell(refs, handlers, opts, caps) {
         h("h3", {}, "Paper and authors"),
         h("p", { class: "cite-title" }, "Asymmetric Phase Coding Video Watermarking"),
         h("p", {}, "Guang Yang (Phi Lab Foundation) and Fengchen Liu (University of California, Berkeley). arXiv:2608.29212, submitted 29 August 2026. Subjects: cs.CR, cs.CV, cs.GR."),
-        h("p", {}, h("a", { href: PAPER_URL, target: "_blank", rel: "noopener", testid: "link-paper-learn" }, "Read the paper on arXiv")),
+        h("p", {}, h("a", { href: PAPER_URL, target: "_blank", rel: "noopener", testid: "link-paper-learn" }, "Read the paper on arXiv"), " · ", h("a", { href: REPO_URL, target: "_blank", rel: "noopener", testid: "link-code-learn" }, "Source code and library on GitHub (BSD 2-Clause)")),
         h("p", { class: "small" }, "This demonstration implements the browser-local, identity-geometry subset of the protocol described in the paper. Published rates were measured with the Python reference implementation and H.264, not with this page."),
       ),
       h("section", { class: "learn-block" }, h("h3", {}, "Attribution"), refs.attribution),
