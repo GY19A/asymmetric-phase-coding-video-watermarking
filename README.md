@@ -8,7 +8,7 @@ This repository contains `apcvw-js`, a browser-local JavaScript implementation o
 
 **Authors:** Guang Yang (Phi Lab Foundation) and Fengchen Liu (University of California, Berkeley).
 
-![The demonstration: one button runs the whole protocol](docs/img/01-hero.png)
+![Protocol: the signer holds the private key; the verifier holds only the public key](docs/img/fig-protocol.png)
 
 ## Contents
 
@@ -45,6 +45,8 @@ $$
 
 where $\Vert$ is byte concatenation and $\sigma$ is the Ed25519 signature over $m$. The bit count is therefore $B = (1 + 2 + n + 64 + 30) \times 8$ for a message of $n$ bytes. A 31-byte message gives $B = 1024$ bits. The RS code over $\mathrm{GF}(2^8)$ corrects up to 15 symbol errors. The message may be 1 to 158 UTF-8 bytes.
 
+![Payload framing](docs/img/fig-payload.png)
+
 ### 2. Public layout
 
 A public nonce $n$ seeds a deterministic layout. From the mid-band bins of the frame's 2-D spectrum,
@@ -55,6 +57,8 @@ $$
 $$
 
 the layout draws $B$ distinct bins and one phase $\phi_j \in [0, 2\pi)$ per bin, then splits them into $G = 4$ groups of $B/4$ bins. For a 1024 by 512 frame the pool has 2416 bins. The layout contains geometry only; it carries no payload material, so it can be published with the video.
+
+![Layout in the spectrum plane](docs/img/fig-layout.png)
 
 ### 3. Carrier and embedding
 
@@ -74,6 +78,10 @@ where $N_g = B/4$ is the number of bins in the group.
 
 The plane is added to the Cr chroma channel of every frame; luma and Cb change only through the final 8-bit rounding. Frames are assigned to groups in runs of $K = 30$: frame $t$ carries group $\lfloor t / 30 \rfloor \bmod 4$.
 
+![Source, marked, and decoded frames with the carrier and residuals](docs/img/fig-embedding.png)
+
+![Cr spectra of the source, the marked frame, and the frame decoded after H.264](docs/img/fig-spectra.png)
+
 ### 4. Extraction and verification
 
 The verifier never reads a frame index. For each received frame it takes the 2-D FFT of the Cr plane and, for every bin of every group, rotates the coefficient by the layout phase:
@@ -85,9 +93,29 @@ $$
 
 The group with the highest score is the frame's group; a mode filter over 30 frames smooths the assignment. Real parts are whitened by the local host energy around each bin and accumulated per payload bit. A hard decision gives the bits, RS decoding corrects errors, and Ed25519 verifies the recovered signature over the recovered message under the given public key. The output is either `VERIFIED` with the recovered message, or `NOT VERIFIED` with a reason.
 
+![Per-frame group scores on the marked video and on the unmarked source](docs/img/fig-groups.png)
+
+![Soft decisions per payload bit after three codecs](docs/img/fig-bits.png)
+
 ### 5. Closed-loop signing
 
 The signer encodes the marked frames to a real video file, decodes that file again, and runs the public verifier on it. It tries a ladder of strengths (42, 40, 38, 36, 34, 32 dB) and ships the first one whose encoded output verifies. Every released file has passed the same verifier the public uses.
+
+![Carrier strength against raw bit errors after H.264](docs/img/fig-ladder.png)
+
+### Measured run behind the figures
+
+Every figure above comes from one run of `docs/figures/make_figures.mjs` in Node v22.23.2: the Sintel excerpt (1024 by 512, 120 frames) is decoded with ffmpeg, marked with this library at a 42 dB Cr target, encoded with real codecs, decoded again, and verified with the public key alone. `docs/figures/plot_figures.py` draws the PNGs from the saved arrays; no number in a figure is typed in.
+
+| Codec | Output size | Frames decoded | Raw bit errors of 1040 | RS symbols corrected | Verdict | Recovered signature equals the embedded one |
+| --- | --- | --- | --- | --- | --- | --- |
+| H.264, CRF 23 | 0.70 MB | 120 | 0 | 0 | VERIFIED | yes, 64 of 64 bytes |
+| H.264, CRF 28 | 0.40 MB | 120 | 1 | 1 | VERIFIED | yes, 64 of 64 bytes |
+| VP9, CRF 33 | 0.43 MB | 120 | 2 | 2 | VERIFIED | yes, 64 of 64 bytes |
+| Wrong public key, H.264 CRF 23 | | | | | NOT VERIFIED, `signature invalid` | |
+| Unmarked source | | | | | NOT VERIFIED, `RS decode failed` | |
+
+Embedding took 8.5 ms per frame on one core; the Cr PSNR before any codec was 43.0 dB against a 42 dB target. This is one clip and one run, shown to explain the mechanism. It is not a benchmark and inherits none of the corpus rates in the paper.
 
 ## Quick start: the demonstration
 
@@ -104,8 +132,6 @@ Click **Run the full demonstration**. In about twenty seconds the page generates
 
 Seven cards then describe what happened. Every number on them is measured during the run.
 
-![The walkthrough cards](docs/img/02-walkthrough.png)
-
 | Step | What the card shows |
 | --- | --- |
 | 01 Identity | The 32-byte public key. The private key stays in the tab. |
@@ -116,20 +142,7 @@ Seven cards then describe what happened. Every number on them is measured during
 | 06 Negative controls | A wrong public key and the unmarked source, both run through the real verifier. |
 | 07 Inspection | Cr spectra of source, marked, and decoded frames with the carrier bins marked; pixel residuals with PSNR. |
 
-<p align="center">
-  <img src="docs/img/05-card-payload.png" width="49%" alt="Card 03: signature and payload" />
-  <img src="docs/img/07-card-verification.png" width="49%" alt="Card 05: extraction and verification" />
-</p>
-<p align="center">
-  <img src="docs/img/06-card-embedding.png" width="49%" alt="Card 04: embedding" />
-  <img src="docs/img/08-card-controls.png" width="49%" alt="Card 06: negative controls" />
-</p>
-
-![Card 07: spectrum and residual](docs/img/09-card-inspection.png)
-
 The **detailed controls** below the cards run each step by hand, accept your own video file or a direct URL, let you edit the message and choose the strength, download the signed file with its public metadata, and verify a downloaded file against a public key.
-
-![The detailed controls](docs/img/10-detailed-controls.png)
 
 ## Quick start: the library
 
@@ -252,6 +265,7 @@ public/media/     Sintel excerpt (Blender Foundation, CC BY 3.0; see ATTRIBUTION
 public/paper/     the paper (PDF)
 docs/API.md       exact API contract
 docs/TEST_EVIDENCE.md   test record with RED and GREEN runs
+docs/figures/     make_figures.mjs (real run in Node + ffmpeg) and plot_figures.py (draws docs/img/fig-*.png)
 tests/            node:test suites and Python oracle fixtures
 ```
 
@@ -266,7 +280,12 @@ npm run build        # dist/: page, apcvw-sdk.js, apcvw-widget.js
 npm run preview      # serve dist/ on http://127.0.0.1:19081
 ```
 
-Set `APCVW_HOST` and `APCVW_PORT` to expose the dev server on another address. The oracle fixtures in `tests/fixtures/` were generated with Python `reedsolo` and `cryptography`; `make_fixtures.py` regenerates them.
+Set `APCVW_HOST` and `APCVW_PORT` to expose the dev server on another address. To regenerate the README figures (needs `ffmpeg` with libx264 and libvpx, and Python with numpy and matplotlib):
+
+```bash
+node docs/figures/make_figures.mjs      # writes docs/figures/data/ (ignored by git)
+python docs/figures/plot_figures.py     # writes docs/img/fig-*.png
+``` The oracle fixtures in `tests/fixtures/` were generated with Python `reedsolo` and `cryptography`; `make_fixtures.py` regenerates them.
 
 ## Citation
 
