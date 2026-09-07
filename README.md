@@ -39,18 +39,19 @@ On 1000 uncurated real-world clips, the reference implementation described in th
 The signer signs the message bytes $m$ with the Ed25519 private key and frames the result as one Reed-Solomon codeword:
 
 $$
-\text{body} = \underbrace{0x00}_{\text{flag}} \,\|\, \underbrace{\text{len}(m)}_{2\ \text{bytes}} \,\|\, m \,\|\, \underbrace{\sigma}_{64\ \text{bytes}}, \qquad
-\text{coded} = \text{body} \,\|\, \text{RS}_{30}(\text{body})
+\mathrm{body} = \underbrace{\mathtt{0x00}}_{\mathrm{flag}} \mathbin{\Vert} \underbrace{\mathrm{len}(m)}_{2\ \mathrm{bytes}} \mathbin{\Vert} m \mathbin{\Vert} \underbrace{\sigma}_{64\ \mathrm{bytes}}, \qquad
+\mathrm{coded} = \mathrm{body} \mathbin{\Vert} \mathrm{RS}_{30}(\mathrm{body})
 $$
 
-The bit count is therefore $B = (1 + 2 + |m| + 64 + 30) \times 8$. A 31-byte message gives $B = 1024$ bits. The RS code over $\mathrm{GF}(2^8)$ corrects up to 15 symbol errors. The message may be 1 to 158 UTF-8 bytes.
+where $\Vert$ is byte concatenation and $\sigma$ is the Ed25519 signature over $m$. The bit count is therefore $B = (1 + 2 + n + 64 + 30) \times 8$ for a message of $n$ bytes. A 31-byte message gives $B = 1024$ bits. The RS code over $\mathrm{GF}(2^8)$ corrects up to 15 symbol errors. The message may be 1 to 158 UTF-8 bytes.
 
 ### 2. Public layout
 
 A public nonce $n$ seeds a deterministic layout. From the mid-band bins of the frame's 2-D spectrum,
 
 $$
-\mathcal{P} = \left\{ (k_y, k_x) : 0.05 \le \sqrt{\left(\tfrac{k_y}{H/2}\right)^2 + \left(\tfrac{k_x}{W/2}\right)^2} < 0.12 \right\},
+\mathcal{P} = \lbrace (k_y, k_x) : 0.05 \le \rho(k_y, k_x) < 0.12 \rbrace, \qquad
+\rho(k_y, k_x) = \sqrt{ \frac{k_y^2}{(H/2)^2} + \frac{k_x^2}{(W/2)^2} } ,
 $$
 
 the layout draws $B$ distinct bins and one phase $\phi_j \in [0, 2\pi)$ per bin, then splits them into $G = 4$ groups of $B/4$ bins. For a 1024 by 512 frame the pool has 2416 bins. The layout contains geometry only; it carries no payload material, so it can be published with the video.
@@ -60,14 +61,16 @@ the layout draws $B$ distinct bins and one phase $\phi_j \in [0, 2\pi)$ per bin,
 For group $g$ the carrier plane is a sum of cosines, one per bin, with the sign chosen by the payload bit:
 
 $$
-c_g(x, y) = \sum_{j \in g} s_j \,\alpha \cos\!\left( 2\pi \left( \tfrac{k_{y,j}\, y}{H} + \tfrac{k_{x,j}\, x}{W} \right) + \phi_j \right), \qquad s_j = 2 b_j - 1 .
+c_g(x, y) = \sum_{j \in g} s_j \, \alpha \cos \left( 2\pi \left( \frac{k_{y,j} \, y}{H} + \frac{k_{x,j} \, x}{W} \right) + \phi_j \right), \qquad s_j = 2 b_j - 1 .
 $$
 
 The amplitude follows from a target PSNR $P$ in decibels for the Cr plane:
 
 $$
-\alpha = \sqrt{ \frac{2 \cdot 255^2}{10^{P/10} \cdot |g|} } .
+\alpha = \sqrt{ \frac{2 \cdot 255^2}{10^{P/10} \cdot N_g} } ,
 $$
+
+where $N_g = B/4$ is the number of bins in the group.
 
 The plane is added to the Cr chroma channel of every frame; luma and Cb change only through the final 8-bit rounding. Frames are assigned to groups in runs of $K = 30$: frame $t$ carries group $\lfloor t / 30 \rfloor \bmod 4$.
 
@@ -77,7 +80,7 @@ The verifier never reads a frame index. For each received frame it takes the 2-D
 
 $$
 C_j = F[k_{y,j}, k_{x,j}] \, e^{-i \phi_j}, \qquad
-\text{score}_g = \frac{\sum_{j \in g} \operatorname{Re}(C_j)^2}{\sum_{j \in g} \operatorname{Im}(C_j)^2} .
+\mathrm{score}_g = \frac{\sum_{j \in g} \mathrm{Re}(C_j)^2}{\sum_{j \in g} \mathrm{Im}(C_j)^2} .
 $$
 
 The group with the highest score is the frame's group; a mode filter over 30 frames smooths the assignment. Real parts are whitened by the local host energy around each bin and accumulated per payload bit. A hard decision gives the bits, RS decoding corrects errors, and Ed25519 verifies the recovered signature over the recovered message under the given public key. The output is either `VERIFIED` with the recovered message, or `NOT VERIFIED` with a reason.
