@@ -4,7 +4,7 @@
 
 This repository contains `apcvw-js`, a browser-local JavaScript implementation of the protocol, and the interactive demonstration that runs it. Everything executes in the browser tab. Nothing is uploaded.
 
-[**Paper: arXiv:2608.29212**](https://arxiv.org/abs/2608.29212) · [PDF in this repository](public/paper/apcvw.pdf) · [Project page at Phi Lab Foundation](https://philab.fund/Researches/Asymmetric-Phase-Coding-Video-Watermarking) · [Live demonstration](https://philab.fund/APCVW/)
+[**Paper: arXiv:2608.29212**](https://arxiv.org/abs/2608.29212) · [PDF in this repository](public/paper/apcvw.pdf) · [Project page at Phi Lab Foundation](https://philab.fund/Researches/Asymmetric-Phase-Coding-Video-Watermarking) · [Live demonstration](https://philab.fund/APCVW/) · [**Rust command-line tool**](https://github.com/GY19A/asymmetric-phase-coding-video-watermarking-rust)
 
 **Authors:** Guang Yang (Phi Lab Foundation) and Fengchen Liu (University of California, Berkeley).
 
@@ -18,11 +18,12 @@ This repository contains `apcvw-js`, a browser-local JavaScript implementation o
 4. [Quick start: the library](#quick-start-the-library)
 5. [One line on your own page](#one-line-on-your-own-page)
 6. [API overview](#api-overview)
-7. [What the browser version does and does not do](#what-the-browser-version-does-and-does-not-do)
-8. [Repository layout](#repository-layout)
-9. [Development and tests](#development-and-tests)
-10. [Citation](#citation)
-11. [License](#license)
+7. [The Rust command-line tool](#the-rust-command-line-tool)
+8. [What the browser version does and does not do](#what-the-browser-version-does-and-does-not-do)
+9. [Repository layout](#repository-layout)
+10. [Development and tests](#development-and-tests)
+11. [Citation](#citation)
+12. [License](#license)
 
 ## Why asymmetric
 
@@ -237,6 +238,22 @@ Full contract for every export, including error behavior and rejection reasons, 
 | Helpers | `toHex`, `fromHex`, `fft`, `fft2d`, `isPowerOfTwo` |
 
 Public metadata to ship with a marked video: `{ version: "apcvw-js-v1", nonce, width, height, messageByteLength }` and the 32-byte public key. Nothing else is needed to verify.
+
+## The Rust command-line tool
+
+For batch work, servers, and shell pipelines there is a companion implementation:
+
+**[GY19A/asymmetric-phase-coding-video-watermarking-rust](https://github.com/GY19A/asymmetric-phase-coding-video-watermarking-rust)**
+
+```bash
+apcvw keygen --secret-out sec.key --public-out pub.key
+apcvw sign   -i input.mp4 -o signed.mp4 -k sec.key -m "Copyright 2026 Example Studio"
+apcvw verify -i signed.mp4 -p pub.key      # exit 0 verified, exit 1 not verified
+```
+
+It is a byte-exact port of this library. Both use layout version `apcvw-js-v1`, so **a video signed by the Rust tool verifies with this JavaScript library and a video signed here verifies with the Rust tool.** The Rust test suite checks both directions on real video. The tool reads and writes the same sidecar metadata this demonstration produces.
+
+Use this JavaScript library when the work belongs in a browser or a page, and the Rust tool when it belongs in a build step, a server, or a shell script. The Rust tool encodes with ffmpeg, so it reaches H.264 and other codecs a browser cannot produce, and it processes a 120-frame clip in well under a second. Neither implementation performs a geometric search; both require frames at the size they were marked at.
 
 ## What the browser version does and does not do
 
